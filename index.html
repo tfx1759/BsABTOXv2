@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Point-of-care grading and management of CRS and ICANS from bispecific T-cell engagers.">
+<meta name="theme-color" content="#0A5A78">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BsAb TOX">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>BsAb TOX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: point-of-care tool. Sticky header, context strip, big tap tiles (CARTOX interaction model), one-column clinical cards, grade-coloured result bands. */
+:root{
+  --bg:#EEF2F5; --surface:#FFFFFF; --surface-2:#F6F8FA; --ink:#12202A; --muted:#566874; --line:#D3DCE3;
+  --accent:#0A5A78; --accent-ink:#FFFFFF; --accent-soft:#DDEEF4;
+  --g0:#2F7A4E; --g1:#B8860B; --g2:#D0661A; --g3:#C1362A; --g4:#7B1E5A;
+  --g0-soft:#E1F1E7; --g1-soft:#FBF1D6; --g2-soft:#FCE6D4; --g3-soft:#F8DCD8; --g4-soft:#F1DAE8;
+  --warn:#8A5A00; --warn-soft:#FFF4D6; --new:#5B3FA8; --new-soft:#ECE7FA;
+  --shadow:0 1px 2px rgba(18,32,42,.06),0 2px 8px rgba(18,32,42,.05);
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C1419; --surface:#15212A; --surface-2:#1B2933; --ink:#E4ECF1; --muted:#95A7B3; --line:#2A3B47;
+  --accent:#5DB7D8; --accent-ink:#06222E; --accent-soft:#16374456;
+  --g0:#5CC08A; --g1:#E3B83E; --g2:#F0914A; --g3:#F06B5C; --g4:#D77DB6;
+  --g0-soft:#173327; --g1-soft:#352D12; --g2-soft:#3A2414; --g3-soft:#3D1C19; --g4-soft:#361A2C;
+  --warn:#EFC063; --warn-soft:#33290F; --new:#B7A4F0; --new-soft:#261F3D;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0C1419; --surface:#15212A; --surface-2:#1B2933; --ink:#E4ECF1; --muted:#95A7B3; --line:#2A3B47;
+  --accent:#5DB7D8; --accent-ink:#06222E; --accent-soft:#16374456;
+  --g0:#5CC08A; --g1:#E3B83E; --g2:#F0914A; --g3:#F06B5C; --g4:#D77DB6;
+  --g0-soft:#173327; --g1-soft:#352D12; --g2-soft:#3A2414; --g3-soft:#3D1C19; --g4-soft:#361A2C;
+  --warn:#EFC063; --warn-soft:#33290F; --new:#B7A4F0; --new-soft:#261F3D;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;}
+
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;line-height:1.1;margin:0;text-wrap:balance}
+p{margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* Header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--accent);color:var(--accent-ink)}
+.top-in{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 16px;min-height:56px}
+.back{display:inline-flex;align-items:center;gap:4px;background:transparent;border:0;color:inherit;font-weight:700;padding:8px 10px 8px 4px;margin-left:-4px;border-radius:10px;cursor:pointer;min-height:44px}
+.back svg{width:20px;height:20px}
+.brand{display:flex;align-items:baseline;gap:8px;cursor:pointer;background:none;border:0;color:inherit;padding:0}
+.brand b{font-family:var(--f-display);font-size:24px;font-weight:700;letter-spacing:.04em}
+.brand small{font-size:12px;opacity:.85;letter-spacing:.06em;text-transform:uppercase}
+.top h1{font-size:22px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spacer{flex:1}
+.home-btn{background:transparent;border:1px solid currentColor;border-radius:999px;color:inherit;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;min-height:36px;opacity:.9}
+
+/* Context strip */
+.ctx{background:var(--surface);border-bottom:1px solid var(--line)}
+.ctx-in{max-width:980px;margin:0 auto;padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:4px 10px;font-weight:700;min-height:32px}
+.chip.muted{font-weight:400;color:var(--muted)}
+.linkbtn{background:none;border:0;color:var(--accent);font-weight:700;cursor:pointer;padding:6px 4px;min-height:32px;text-decoration:underline;text-underline-offset:3px}
+
+main{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:16px 48px;display:flex;flex-direction:column;gap:16px}
+.narrow{max-width:760px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+
+/* Home */
+.hero-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hero{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;border:0;border-radius:18px;padding:18px 16px;cursor:pointer;color:var(--accent-ink);background:var(--accent);min-height:132px;box-shadow:var(--shadow)}
+.hero.ice{background:var(--ink);color:var(--bg)}
+.hero .code{font-family:var(--f-display);font-weight:700;font-size:44px;line-height:1;letter-spacing:.02em}
+.hero .lbl{font-weight:700;font-size:17px}
+.hero .sub{font-size:13px;opacity:.85}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:640px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:900px){.tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tile{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;min-height:104px}
+.tile:hover{border-color:var(--accent)}
+.tile .code{font-family:var(--f-display);font-weight:700;font-size:26px;color:var(--accent);line-height:1}
+.tile .lbl{font-weight:700;font-size:15px;line-height:1.25}
+.tile .sub{font-size:12.5px;color:var(--muted);line-height:1.3}
+.section-label{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h2{font-size:22px}
+.card h3{font-size:18px;color:var(--accent)}
+.card ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.card li{padding-left:2px}
+.card li::marker{color:var(--muted)}
+.note{font-size:14px;color:var(--muted)}
+.callout{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.callout .h{font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.callout ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.c-agent{background:var(--accent-soft);border:1px solid var(--accent)}
+.c-agent .h{color:var(--accent)}
+.c-warn{background:var(--warn-soft);border:1px solid var(--warn)}
+.c-warn .h{color:var(--warn)}
+.c-new{background:var(--new-soft);border:1px solid var(--new)}
+.c-new .h{color:var(--new)}
+.c-stop{background:var(--g3-soft);border:1px solid var(--g3)}
+.c-stop .h{color:var(--g3)}
+.dose{font-family:var(--f-mono);font-weight:700;font-size:.9em;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:0 5px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.card li,.callout li,.ed li{overflow-wrap:anywhere}
+.calc{font-family:var(--f-mono);font-weight:700;color:var(--accent);white-space:nowrap}
+
+/* Choice groups */
+.q{display:flex;flex-direction:column;gap:8px}
+.q-title{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.q-title b{font-size:17px}
+.q-title span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.opts{display:grid;grid-template-columns:1fr;gap:8px}
+@media (min-width:560px){.opts.two{grid-template-columns:1fr 1fr}}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;min-height:56px;cursor:pointer;width:100%}
+.opt .g{flex:none;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:18px;background:var(--surface-2);color:var(--muted)}
+.opt .t{font-weight:700;line-height:1.25}
+.opt .t small{display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt[aria-pressed="true"] .g{background:var(--accent);color:var(--accent-ink)}
+
+/* Segmented */
+.seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:0;border:0;background:transparent;border-radius:9px;padding:10px 8px;font-weight:700;cursor:pointer;min-height:44px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.gradepick button[aria-pressed="true"]{color:#fff}
+.gradepick button{font-family:var(--f-display);font-size:18px}
+@media (max-width:480px){.gw{display:none}}
+.opt,.ice-item,.agent-row,.tile,.check{color:var(--ink)}
+.gradepick button[data-g="1"][aria-pressed="true"]{background:var(--g1)}
+.gradepick button[data-g="2"][aria-pressed="true"]{background:var(--g2)}
+.gradepick button[data-g="3"][aria-pressed="true"]{background:var(--g3)}
+.gradepick button[data-g="4"][aria-pressed="true"]{background:var(--g4)}
+:root[data-theme="dark"] .gradepick button[aria-pressed="true"]{color:#101010}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .gradepick button[aria-pressed="true"]{color:#101010}}
+
+/* Result band */
+.result{position:sticky;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:5;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:14px;border:2px solid var(--g);background:var(--gs);box-shadow:var(--shadow)}
+.result .num{flex:none;width:64px;height:64px;border-radius:14px;background:var(--g);color:var(--surface);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:40px;line-height:1}
+.result .num.sm{font-size:22px}
+.result .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.result .txt b{font-family:var(--f-display);font-size:24px;line-height:1.05}
+.result .txt span{font-size:13.5px;color:var(--ink)}
+.result .go{flex:none;border:0;background:var(--g);color:var(--surface);font-weight:700;border-radius:10px;padding:10px 12px;cursor:pointer;min-height:44px}
+@media (max-width:420px){.result{flex-wrap:wrap}.result .go{width:100%}}
+.gc0{--g:var(--g0);--gs:var(--g0-soft)} .gc1{--g:var(--g1);--gs:var(--g1-soft)} .gc2{--g:var(--g2);--gs:var(--g2-soft)} .gc3{--g:var(--g3);--gs:var(--g3-soft)} .gc4{--g:var(--g4);--gs:var(--g4-soft)}
+
+/* ICE */
+.ice-grid{display:grid;grid-template-columns:1fr;gap:8px}
+@media (min-width:560px){.ice-grid{grid-template-columns:1fr 1fr}}
+.ice-item{display:flex;align-items:center;gap:12px;border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);cursor:pointer;text-align:left;min-height:52px;width:100%}
+.ice-item .box{flex:none;width:28px;height:28px;border-radius:8px;border:2px solid var(--g0);display:grid;place-items:center;background:var(--g0);color:var(--surface)}
+.ice-item .box svg{width:18px;height:18px}
+.ice-item[aria-pressed="false"]{border-color:var(--g3);background:var(--g3-soft)}
+.ice-item[aria-pressed="false"] .box{background:var(--surface);border-color:var(--g3);color:var(--g3)}
+.ice-item .t{flex:1;font-weight:700}
+.ice-item .pts{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.ice-score{font-family:var(--f-display);font-size:34px;font-weight:700}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--surface-2);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+
+/* Agents */
+.agent-list{display:grid;grid-template-columns:1fr;gap:8px}
+@media (min-width:640px){.agent-list{grid-template-columns:1fr 1fr}}
+.agent-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer;min-height:64px;width:100%}
+.agent-row:hover{border-color:var(--accent)}
+.agent-row .tg{flex:none;font-family:var(--f-display);font-weight:700;font-size:13px;letter-spacing:.04em;background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:6px 8px;min-width:70px;text-align:center}
+.agent-row .nm{flex:1;min-width:0}
+.agent-row .nm b{display:block}
+.agent-row .nm small{color:var(--muted)}
+.pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:2px 8px;border:1px solid currentColor}
+.pill.rems{color:var(--g3)} .pill.new{color:var(--new)} .pill.upd{color:var(--warn)}
+.kv{display:grid;grid-template-columns:minmax(110px,38%) 1fr;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.kv div{padding:9px 12px;border-bottom:1px solid var(--line);font-size:15px;min-width:0}
+.kv div:nth-child(odd){background:var(--surface-2);color:var(--muted);font-size:13px;font-weight:700}
+.kv div:nth-last-child(-n+2){border-bottom:0}
+
+/* Forms */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:14px}
+select,input[type="number"]{font:inherit;font-size:17px;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px 12px;min-height:48px;width:100%}
+.row{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:620px){.row{grid-template-columns:1.4fr 1fr 1fr}}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.check{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;background:var(--surface);min-height:40px;font-size:14px;font-weight:700}
+.check[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.btn{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:12px;padding:12px 16px;cursor:pointer;min-height:48px}
+.btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+
+.dose-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:620px){.dose-grid{grid-template-columns:1fr 1fr}}
+.drug{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface);display:flex;flex-direction:column;gap:4px;min-width:0}
+.drug .dn{font-weight:700}
+.drug .dv{font-family:var(--f-mono);font-weight:700;font-size:20px;color:var(--accent)}
+.drug .dd{font-size:13.5px;color:var(--muted)}
+
+.foot{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:4px}
+.ed{border:3px solid var(--g3);border-radius:16px;padding:18px;background:var(--surface);display:flex;flex-direction:column;gap:12px}
+.ed h2{font-size:30px;color:var(--g3)}
+.ed ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:17px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+@media (prefers-reduced-motion:no-preference){.view{animation:in .16s ease-out}@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+</style>
+
+</head>
+<body>
+<header class="top"><div class="top-in" id="topbar"></div></header>
+<div class="ctx" id="ctx"></div>
+<main id="view" class="view"></main>
+
+<script>
+(function(){
+"use strict";
+var VERSION = "Content v0.2 · institutional guideline (2025) · label check 29 Sep 2026";
+
+/* ---------- Agent data (source guideline appendix unless marked) ---------- */
+var AGENTS = [
+ {id:"teclistamab",name:"Teclistamab",brand:"Tecvayli",target:"BCMA × CD3",dz:"Multiple myeloma",route:"SC",mm:true,rems:true,inGuide:true,
+  crs:"72.1% (G≥3 0.6%)",crsOnset:"2 days",crsDur:"2 days",icans:"3%",icansOnset:"4 days",
+  site:"Hospitalize for 48 h after each dose in the step-up schedule. Typical admission ≈7 days.",
+  notes:["Multiple myeloma: early tocilizumab is recommended for Grade 1 CRS.","ICANS median onset (4 days) may fall after discharge — give caregivers neuro red flags."],
+  updates:["Current label (pooled N=448): CRS 64%, ICANS 6%.","Teclistamab + daratumumab SC (Tec-Dara) approved 5 Mar 2026 (≥1 prior line) with its own step-up schedule — not in the source guideline; verify with current PI.","Label now names an IVIG target: keep IgG >400 mg/dL."],
+  other:["Infections: serious 30%, fatal ≈4%. Neutropenia common.","IMWG: acyclovir/valacyclovir, PJP prophylaxis, IVIG if IgG <400 mg/dL."]},
+ {id:"elranatamab",name:"Elranatamab",brand:"Elrexfio",target:"BCMA × CD3",dz:"Multiple myeloma",route:"SC",mm:true,rems:true,inGuide:true,
+  crs:"56.3% (G≥3 0%)",crsOnset:"2 days",crsDur:"2 days",icans:"3.4%",icansOnset:"3 days",
+  site:"Hospitalize 48 h after step-up dose 1 and 24 h after step-up dose 2. Typical admission ≈5 days.",
+  notes:["Multiple myeloma: early tocilizumab is recommended for Grade 1 CRS."],
+  updates:["Current label: CRS 58% (G≥3 0.5%), ICANS 3.3%."],
+  other:["Fatal infections ≈7% in the label population — strict infection prophylaxis and IgG monitoring."]},
+ {id:"talquetamab",name:"Talquetamab",brand:"Talvey",target:"GPRC5D × CD3",dz:"Multiple myeloma",route:"SC",mm:true,rems:true,inGuide:true,
+  crs:"78.4% (G≥3 1.4%)",crsOnset:"27 hours",crsDur:"17 hours",icans:"10%",icansOnset:"2 days",
+  site:"Hospitalize for 48 h after each dose in the step-up schedule. Typical admission ≈10 days.",
+  notes:["CRS peaks at step-up dose 2 (≈44%), not dose 1 — stay alert through step-up dose 3 and the first full dose.","Multiple myeloma: early tocilizumab is recommended for Grade 1 CRS."],
+  updates:["Current label: CRS 76% (G≥3 1.5%), ICANS 9%."],
+  other:["GPRC5D on-target toxicity: oral 80% (dysgeusia, dry mouth, dysphagia; often persists), skin 62%, nail 50%, weight loss 62%.","Label: oral toxicity/weight loss G3 → withhold until ≤G1; G4 → discontinue.","Supportive care: emollients (urea 10%), topical steroids, SLS-free toothpaste, dietitian, dental review.","Motor dysfunction/ataxia ≈10%."]},
+ {id:"linvoseltamab",name:"Linvoseltamab",brand:"Lynozyfic",target:"BCMA × CD3",dz:"Multiple myeloma",route:"IV",mm:true,rems:true,inGuide:false,
+  crs:"46% (G≥3 0.9%)",crsOnset:"11 h after end of infusion",crsDur:"—",icans:"8%",icansOnset:"1 day",
+  site:"Label: hospitalize 24 h after step-up doses 1 and 2. REMS.",
+  notes:["Not in the source guideline (approved 2 Jul 2025). Data from US label — verify with current PI.","Multiple myeloma: apply the early-tocilizumab recommendation for Grade 1 CRS."],
+  updates:[],
+  other:["Serious infections ≈42%, fatal ≈4%. PML reported."]},
+ {id:"tarlatamab",name:"Tarlatamab",brand:"Imdelltra",target:"DLL3 × CD3",dz:"Small cell lung cancer",route:"IV",mm:false,rems:false,inGuide:true,dexFirst:true,
+  crs:"55% (G≥3 0.5%)",crsOnset:"13.5 hours",crsDur:"4 days",icans:"9%",icansOnset:"29.5 days",
+  site:"Outpatient step-up: first two doses in infusion center with 12 h extended observation and a 24 h follow-up clinic visit; stay within 1 h of the treating center for 48 h. Inpatient step-up: first two doses in hospital with 24 h observation, then within 1 h of the treating center for 48 h total.",
+  notes:["Dexamethasone is the preferred initial intervention over tocilizumab.","Label reference (2024 PI): G2 CRS — consider dexamethasone 8 mg IV; G3 — dexamethasone 8 mg IV q8h up to 3 doses plus tocilizumab.","ICANS can occur late (weeks to months) and is more frequent with brain metastases — keep checking ICE at later visits."],
+  updates:["14 Sep 2026 label: monitoring after C1D1 and C1D8 reduced to 6–8 h from start of infusion; patient stays within 1 h of care with a caregiver for 48 h; vital-sign check on Day 2 and Day 9.","Pooled label (N=473): CRS 57%, median onset 16 h — most CRS now starts after the patient leaves.","ICANS 10%, median onset 16 days."],
+  other:["Dysgeusia ≈34%, fatigue, decreased appetite, neutropenia, infections ≈43%, transaminase elevation."]},
+ {id:"blinatumomab",name:"Blinatumomab",brand:"Blincyto",target:"CD19 × CD3",dz:"B-cell ALL",route:"Continuous IV",mm:false,rems:false,inGuide:true,dexFirst:true,blina:true,
+  crs:"Consolidation 16% (G≥3 4%) · MRD+ 7% · R/R 14% (G≥3 3%)",crsOnset:"2 days",crsDur:"5 days",icans:"7.5%",icansOnset:"14 days",
+  site:"Consolidation & MRD+: hospitalize first 3 days of cycle 1 and first 2 days of cycle 2. R/R: first 9 days of cycle 1 and first 2 days of cycle 2. Cycle 3+: outpatient if prior cycles tolerated.",
+  notes:["CRS: continue infusion for Grade 1–2; hold for Grade 3; discontinue for Grade 4.","Dexamethasone is the preferred initial intervention over tocilizumab."],
+  updates:["Current label (neuro section revised Apr 2025): Grade 2 ICANS → interrupt infusion, give corticosteroids, restart at 9 mcg/day. The source guideline says continue — confirm with attending.","After an interruption ≥4 h, re-premedicate with dexamethasone per label."],
+  other:["Neurologic events (any) ≈65%. Cytopenias and infections common."]},
+ {id:"mosunetuzumab",name:"Mosunetuzumab",brand:"Lunsumio",target:"CD20 × CD3",dz:"Follicular lymphoma",route:"IV (SC form 2025)",mm:false,rems:false,inGuide:true,
+  crs:"44% (G≥3 2%)",crsOnset:"1st dose 5 h (1–3 days); later doses 25–46 h",crsDur:"3 days",icans:"3%",icansOnset:"—",
+  site:"No hospitalization required.",
+  notes:[],
+  updates:["SC formulation (Lunsumio VELO) approved 22 Dec 2025: CRS 30%; CRS after C1D8 has median onset 62 h — extend home monitoring to ≈72–96 h."],
+  other:["Headache and neuropathy are far more common than ICANS."]},
+ {id:"glofitamab",name:"Glofitamab",brand:"Columvi",target:"CD20 × CD3",dz:"DLBCL / LBCL",route:"IV",mm:false,rems:false,inGuide:true,
+  crs:"63% (G≥3 4%)",crsOnset:"After C1D8: 14 h (5–74 h)",crsDur:"30.5 hours",icans:"8%",icansOnset:"—",
+  site:"Initial 2.5 mg dose given outpatient; monitor 90 min then admit for observation (≈23 h).",
+  notes:["Obinutuzumab 1000 mg pretreatment on C1D1; dexamethasone 20 mg premedication."],
+  updates:["Current label: hospitalize during and 24 h after the 2.5 mg dose; CRS 70% (G3–4 ≈4%), ICANS 4.8%.","Tumor flare ≈12% (median onset 2 days) can mimic CRS. Fibrinogen falls in most patients — compare with baseline."],
+  other:["PML reported. Cytopenias, infections."]},
+ {id:"epcoritamab",name:"Epcoritamab",brand:"Epkinly",target:"CD20 × CD3",dz:"DLBCL / FL",route:"SC",mm:false,rems:false,inGuide:true,epco:true,
+  crs:"49.7% (G≥3 2.5%)",crsOnset:"DLBCL after C1D15: 21 h (0–7 d) · FL after C1D22: 61 h (0.1–7 d)",crsDur:"2 days",icans:"6.4%",icansOnset:"16.5 days (8–141)",
+  site:"DLBCL only: first 48 mg dose given outpatient, monitor 90 min then admit for observation (≈23 h). FL: hospitalization not required.",
+  notes:["If the patient is on daily steroid doses, early tocilizumab is recommended for Grade 1 CRS.","Late ICANS (median 16.5 days) — check ICE at later visits."],
+  updates:["1 Apr 2026 label: inpatient vs outpatient monitoring after the first 48 mg dose (DLBCL) is now a clinician decision.","FL + lenalidomide/rituximab approved Nov 2025.","Cycle 1 premedication includes corticosteroid for 3 days after each dose — can mask or delay fever."],
+  other:["Label requires PJP prophylaxis. PML ≈0.4%."]},
+ {id:"tebentafusp",name:"Tebentafusp",brand:"Kimmtrak",target:"gp100 × CD3 (HLA-A*02:01)",dz:"Uveal melanoma",route:"IV",mm:false,rems:false,inGuide:true,teben:true,
+  crs:"89% (G≥3 1%)",crsOnset:"1 day",crsDur:"2 days",icans:"N/A",icansOnset:"N/A",
+  site:"Give the first 3 infusions inpatient; monitor during infusion and for at least 16 h after completion. Typical admission ≈2 days.",
+  notes:["Tocilizumab is preferred; defer corticosteroids until later grades.","If steroids needed: methylprednisolone 2 mg/kg/day IV (instead of dexamethasone)."],
+  updates:[],
+  other:["Hypotension common — fluid-responsive. Skin reactions ≈90%. Transaminase elevation."]}
+];
+function agentById(id){for(var i=0;i<AGENTS.length;i++){if(AGENTS[i].id===id)return AGENTS[i];}return null;}
+
+/* ---------- State ---------- */
+var DEF = {agent:"",wt:"",setting:"out",age65:false,comorb:false,steroids:false};
+var S = load();
+function load(){try{var s=JSON.parse(localStorage.getItem("bsabtox.ctx")||"null");if(s&&typeof s==="object"){for(var k in DEF){if(!(k in s))s[k]=DEF[k];}return s;}}catch(e){}return JSON.parse(JSON.stringify(DEF));}
+function save(){try{localStorage.setItem("bsabtox.ctx",JSON.stringify(S));}catch(e){}}
+var CRS = {fever:"yes",bp:0,o2:0};
+var ICE = {year:true,month:true,city:true,hosp:true,n1:true,n2:true,n3:true,cmd:true,write:true,count:true};
+var NEU = {loc:0,sz:0,motor:0,icp:0};
+var ui = {crsGrade:1,icansGrade:1,editCtx:false};
+
+/* ---------- Helpers ---------- */
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function wt(){var w=parseFloat(S.wt);return (w>0&&w<400)?w:0;}
+function r(n){return Math.round(n);}
+function toci(){var w=wt();if(!w)return '<span class="dose">tocilizumab 8 mg/kg IV (max 800 mg)</span>';var d=Math.min(8*w,800);return '<span class="dose">tocilizumab 8 mg/kg IV (max 800 mg)</span> → <span class="calc">'+r(d)+' mg'+(8*w>800?' (capped)':'')+'</span>';}
+function anak(){var w=wt();var base='<span class="dose">anakinra 8–10 mg/kg/day IV in 3–4 divided doses</span>';if(!w)return base;return base+' → <span class="calc">'+r(8*w)+'–'+r(10*w)+' mg/day</span>';}
+function silt(){var w=wt();var b='<span class="dose">siltuximab 11 mg/kg IV once</span>';return w?b+' → <span class="calc">'+r(11*w)+' mg</span>':b;}
+function mp2(){var w=wt();var b='<span class="dose">methylPREDNISolone 2 mg/kg/day IV</span>';return w?b+' → <span class="calc">'+r(2*w)+' mg/day</span>':b;}
+function D(s){return '<span class="dose">'+s+'</span>';}
+function relevant(t){var a=agentById(S.agent);if(!a)return true;if(/^Tebentafusp/.test(t)&&!a.teben)return false;if(/^Dexamethasone preferred first for tarlatamab/.test(t)&&!a.dexFirst)return false;return true;}
+function ul(items){return '<ul>'+items.filter(Boolean).filter(relevant).map(function(i){return '<li>'+i+'</li>';}).join("")+'</ul>';}
+function callout(cls,h,items){items=items.filter(Boolean);if(!items.length)return "";return '<div class="callout '+cls+'"><div class="h">'+h+'</div>'+(items.length===1?'<div>'+items[0]+'</div>':ul(items))+'</div>';}
+function foot(src){return '<div class="foot"><div>Source: '+src+'</div><div>'+VERSION+'. Decision support only — does not replace clinical judgment or the product prescribing information.</div></div>';}
+var ICON_BACK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+var ICON_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>';
+var ICON_X='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+/* ---------- Routing ---------- */
+var TITLES={home:"",crs:"Grade CRS",ice:"ICE & ICANS grade",crsm:"CRS management",icansm:"ICANS management",seizure:"Seizure & raised ICP",dose:"Dose calculator",agents:"Agents",workup:"Work-up & IEC-HS",monitor:"Monitoring & escalation",ed:"ED / after-hours card",other:"Other toxicities",about:"Install & about",context:"Patient context"};
+function route(){var h=(location.hash||"").replace("#","");if(!h)return "home";if(h.indexOf("agent-")===0&&agentById(h.slice(6)))return h;return TITLES.hasOwnProperty(h)?h:"home";}
+function go(r){if(("#"+r)===location.hash){render();return;}location.hash=r;}
+function parent(r){if(r.indexOf("agent-")===0)return "agents";return "home";}
+window.addEventListener("hashchange",function(){render();window.scrollTo(0,0);});
+
+function renderTop(r){
+  var t=document.getElementById("topbar");
+  if(r==="home"){t.innerHTML='<button class="brand" data-go="home" aria-label="BsAb TOX home"><b>BsAb TOX</b><small>CRS · ICANS</small></button><span class="spacer"></span><button class="home-btn" data-go="ed">ED card</button>';}
+  else{var title=r.indexOf("agent-")===0?agentById(r.slice(6)).name:TITLES[r];
+    t.innerHTML='<button class="back" data-go="'+parent(r)+'" aria-label="Back">'+ICON_BACK+'Back</button><h1>'+esc(title)+'</h1>'+(parent(r)!=="home"?'<button class="home-btn" data-go="home">Home</button>':'')+'';}
+}
+function renderCtx(r){
+  var c=document.getElementById("ctx");
+  if(r==="about"||r==="context"){c.innerHTML="";c.hidden=true;return;}
+  c.hidden=false;var a=agentById(S.agent);var chips=[];
+  chips.push(a?'<span class="chip">'+esc(a.name)+'</span>':'<span class="chip muted">No agent selected</span>');
+  chips.push(wt()?'<span class="chip mono">'+wt()+' kg</span>':'<span class="chip muted">No weight</span>');
+  chips.push('<span class="chip">'+(S.setting==="in"?"Inpatient":"Outpatient / infusion")+'</span>');
+  var f=[];if(S.age65)f.push(">65 y");if(S.comorb)f.push("Cardiac/renal");if(S.steroids)f.push("On daily steroids");
+  if(f.length)chips.push('<span class="chip">'+f.join(" · ")+'</span>');
+  c.innerHTML='<div class="ctx-in">'+chips.join("")+'<button class="linkbtn" data-go="context">Edit</button></div>';
+}
+
+function render(){
+  var r=route();renderTop(r);renderCtx(r);
+  var v=document.getElementById("view");var html="";
+  if(r==="home")html=vHome();else if(r==="crs")html=vCRS();else if(r==="ice")html=vICE();else if(r==="crsm")html=vCRSM();
+  else if(r==="icansm")html=vICANSM();else if(r==="seizure")html=vSeizure();else if(r==="dose")html=vDose();else if(r==="agents")html=vAgents();
+  else if(r.indexOf("agent-")===0)html=vAgent(agentById(r.slice(6)));else if(r==="workup")html=vWorkup();else if(r==="monitor")html=vMonitor();
+  else if(r==="ed")html=vED();else if(r==="other")html=vOther();else if(r==="about")html=vAbout();else if(r==="context")html=vContext();
+  v.innerHTML=html;v.classList.remove("view");void v.offsetWidth;v.classList.add("view");
+  document.title=r==="home"?"BsAb TOX":"BsAb TOX · "+(r.indexOf("agent-")===0?agentById(r.slice(6)).name:TITLES[r]);
+}
+
+/* ---------- Views ---------- */
+function vHome(){
+  var h='<div class="hero-tiles">'+
+   '<button class="hero" data-go="crs"><span class="code">CRS</span><span class="lbl">Grade CRS</span><span class="sub">Fever · BP · O₂ → ASTCT grade</span></button>'+
+   '<button class="hero ice" data-go="ice"><span class="code">ICE</span><span class="lbl">ICE score & ICANS</span><span class="sub">10-point ICE + neuro domains</span></button></div>';
+  h+='<div class="section-label">Manage</div><div class="tiles">'+
+   tile("crsm","Rx","CRS management","By grade · outpatient vs inpatient")+
+   tile("icansm","Nx","ICANS management","By grade · dex taper")+
+   tile("seizure","Sz","Seizure & raised ICP","Status epilepticus · edema")+
+   tile("dose","mg","Dose calculator","Weight-based rescue drugs")+
+   '</div><div class="section-label">Reference</div><div class="tiles">'+
+   tile("agents","Ag","Agents","Onset, incidence, site of care")+
+   tile("workup","Wu","Work-up & IEC-HS","Labs, differential, HLH flags")+
+   tile("monitor","Mo","Monitoring & escalation","Vitals, ICU triggers, home plan")+
+   tile("other","+","Other toxicities","Infection, GPRC5D, cytopenias")+
+   tile("ed","ED","ED / after-hours card","One screen for the covering team")+
+   tile("about","i","Install & about","iPhone home screen · sources")+
+   '</div>';
+  if(!S.agent||!wt()){h+='<div class="callout c-agent"><div class="h">Tip</div><div><button class="linkbtn" data-go="context">Set the agent and weight once</button>. Management screens will then show agent-specific rules and calculated doses. Nothing is sent anywhere; it stays on this device.</div></div>';}
+  h+='<div class="foot"><div>Built on an institutional adult bispecific T-cell engager guideline (2025) and ASTCT consensus grading. Label updates through Sept 2026 are flagged separately.</div><div>'+VERSION+'. Decision support only.</div></div>';
+  return h;
+}
+function tile(r,code,lbl,sub){return '<button class="tile" data-go="'+r+'"><span class="code">'+code+'</span><span class="lbl">'+lbl+'</span><span class="sub">'+sub+'</span></button>';}
+
+function vContext(){
+  var opts='<option value="">— Not specified —</option>'+AGENTS.map(function(a){return '<option value="'+a.id+'"'+(S.agent===a.id?" selected":"")+'>'+a.name+' ('+a.brand+') — '+a.dz+'</option>';}).join("");
+  return '<div class="narrow"><div class="card"><h2>Patient context</h2><p class="note">Used only to tailor recommendations and doses on this device. No names or identifiers.</p>'+
+   '<div class="field"><label for="c-agent">Bispecific agent</label><select id="c-agent" data-ctx="agent">'+opts+'</select></div>'+
+   '<div class="field"><label for="c-wt">Weight (kg)</label><input id="c-wt" type="number" inputmode="decimal" min="1" max="400" step="0.1" placeholder="e.g. 72" value="'+esc(S.wt)+'" data-ctx="wt"><span class="note" id="c-lb">'+(wt()?"≈ "+r(wt()*2.2046)+" lb":"")+'</span></div>'+
+   '<div class="field"><label>Setting</label><div class="seg" role="group" aria-label="Setting"><button data-set="setting" data-val="out" aria-pressed="'+(S.setting==="out")+'">Outpatient / infusion</button><button data-set="setting" data-val="in" aria-pressed="'+(S.setting==="in")+'">Inpatient / ED</button></div></div>'+
+   '<div class="field"><label>Risk factors (early-tocilizumab criteria)</label><div class="checks">'+
+     chk("age65","Age >65")+chk("comorb","Cardiac or renal comorbidity")+chk("steroids","On daily steroids")+'</div></div>'+
+   '<div class="btns"><button class="btn" data-go="home">Done</button><button class="btn ghost" data-act="clearctx">Clear</button></div></div></div>';
+}
+function chk(k,l){return '<button class="check" data-tog="'+k+'" aria-pressed="'+(!!S[k])+'">'+l+'</button>';}
+
+/* CRS grader */
+function crsGrade(){if(CRS.fever==="no")return 0;return Math.max(1,CRS.bp,CRS.o2);} /* bp/o2 stored as the grade they imply (0,2,3,4) */
+function vCRS(){
+  var g=crsGrade();ui.crsGrade=g||1;
+  var driver="";
+  if(g===0)driver="No fever and no prior antipyretic/anti-cytokine therapy — does not meet ASTCT CRS criteria. Consider other causes of hypotension/hypoxia.";
+  else if(g===1)driver="Fever only — no hypotension or hypoxia.";
+  else{var p=[];if(CRS.bp===g)p.push(["","","hypotension without vasopressors","1 vasopressor","multiple vasopressors"][CRS.bp]);if(CRS.o2===g)p.push(["","","low-flow O₂ ≤6 L/min","high-flow O₂ / facemask","positive pressure"][CRS.o2]);driver="Driven by "+p.join(" and ")+".";}
+  var res='<div class="result gc'+g+'" aria-live="polite"><div class="num'+(g===0?" sm":"")+'">'+(g===0?"—":g)+'</div><div class="txt"><b>'+(g===0?"Not CRS by ASTCT":"CRS Grade "+g)+'</b><span>'+driver+'</span></div>'+(g?'<button class="go" data-mg="crs" data-g="'+g+'">Manage →</button>':'')+'</div>';
+  var q1=group("Fever","Temp ≥38.0 °C / 100.4 °F",[["yes","Yes — temp ≥38.0 °C",""],["masked","Fever masked","Already given antipyretic, steroid or tocilizumab — grade on BP/O₂"],["no","No fever",""]],"fever",CRS.fever);
+  var q2=group("Hypotension","Not attributable to other causes",[[0,"None",""],[2,"Hypotension, no vasopressor","Fluid-responsive"],[3,"1 vasopressor","± vasopressin"],[4,"Multiple vasopressors","Excluding vasopressin"]],"bp",CRS.bp);
+  var q3=group("Hypoxia","Above baseline O₂ need",[[0,"None / baseline",""],[2,"Low-flow nasal cannula ≤6 L/min","or blow-by"],[3,"High-flow NC >6 L/min","Facemask, non-rebreather or Venturi"],[4,"Positive pressure","CPAP, BiPAP, intubation"]],"o2",CRS.o2);
+  return '<div class="narrow">'+res+'<div class="card">'+q1+'</div><div class="card">'+q2+'</div><div class="card">'+q3+'</div>'+
+   callout("c-warn","Grading rules",["Grade = the most severe of hypotension or hypoxia, not attributable to another cause.","Fever may be absent in patients on antipyretics or corticosteroids — use “Fever masked”.","Organ toxicity (renal, hepatic, cardiac…) is graded by CTCAE v5.0; consider treating as severe CRS.","Always evaluate for infection in parallel — CRS and sepsis can look identical."])+
+   '<button class="btn ghost" data-act="resetcrs">Reset</button>'+foot("ASTCT consensus grading (Lee 2019).")+'</div>';
+}
+function group(title,sub,opts,key,cur){
+  return '<div class="q"><div class="q-title"><b>'+title+'</b><span>'+sub+'</span></div><div class="opts">'+opts.map(function(o){
+    var val=o[0];var pressed=String(cur)===String(val);var badge=key==="fever"?(val==="no"?"–":"✓"):(val===0?"–":String(val));
+    return '<button class="opt" data-crs="'+key+'" data-val="'+val+'" aria-pressed="'+pressed+'"><span class="g">'+badge+'</span><span class="t">'+o[1]+(o[2]?'<small>'+o[2]+'</small>':'')+'</span></button>';}).join("")+'</div></div>';
+}
+
+/* ICE / ICANS */
+var ICE_ITEMS=[["Orientation",[["year","Year"],["month","Month"],["city","City"],["hosp","Hospital"]]],["Naming (3 objects, e.g. clock, pen, button)",[["n1","Object 1"],["n2","Object 2"],["n3","Object 3"]]],["Other",[["cmd","Follows simple commands","e.g. “show me 2 fingers”"],["write","Writes a standard sentence",""],["count","Counts back from 100 by 10",""]]]];
+function iceScore(){var s=0;for(var k in ICE)if(ICE[k])s++;return NEU.loc===4?0:s;}
+function iceGrade(s){return s===10?0:s>=7?1:s>=3?2:3;}
+function icansGrade(){var s=iceScore();return Math.max(iceGrade(s),NEU.loc,NEU.sz,NEU.motor,NEU.icp);}
+function vICE(){
+  var s=iceScore(),g=icansGrade();ui.icansGrade=g||1;
+  var parts=[];var ig=iceGrade(s);if(ig===g&&g>0)parts.push("ICE score");
+  if(NEU.loc===g&&g>0)parts.push(["","awakens spontaneously","awakens to voice","awakens only to touch","unarousable"][NEU.loc]);
+  if(NEU.sz===g&&g>0)parts.push("seizure");if(NEU.motor===g&&g>0)parts.push("focal motor weakness");if(NEU.icp===g&&g>0)parts.push(g===4?"diffuse edema / raised ICP":"focal edema");
+  var res='<div class="result gc'+g+'" aria-live="polite"><div class="num'+(g===0?" sm":"")+'">'+(g===0?"—":g)+'</div><div class="txt"><b>'+(g===0?"No ICANS":"ICANS Grade "+g)+'</b><span>ICE <span class="mono">'+s+'/10</span>'+(parts.length?" · driven by "+parts.join(", "):"")+'</span></div>'+(g?'<button class="go" data-mg="icans" data-g="'+g+'">Manage →</button>':'')+'</div>';
+  var ice='<div class="card"><div class="q-title"><b>ICE score</b><span class="ice-score mono" aria-label="ICE score">'+s+'/10</span></div><p class="note">All items start as correct. Tap any item the patient gets wrong.</p>'+
+   ICE_ITEMS.map(function(gp){return '<div class="section-label">'+gp[0]+'</div><div class="ice-grid">'+gp[1].map(function(it){var ok=ICE[it[0]];return '<button class="ice-item" data-ice="'+it[0]+'" aria-pressed="'+ok+'"'+(NEU.loc===4?" disabled":"")+'><span class="box">'+(ok?ICON_CHECK:ICON_X)+'</span><span class="t">'+it[1]+(it[2]?'<small class="note" style="display:block;font-weight:400">'+it[2]+'</small>':'')+'</span><span class="pts">1 pt</span></button>';}).join("")+'</div>';}).join("")+
+   (NEU.loc===4?'<p class="note">Unarousable — ICE scored 0.</p>':'')+'</div>';
+  var d=function(title,key,opts){return '<div class="card"><div class="q"><div class="q-title"><b>'+title+'</b><span>Not attributable to another cause</span></div><div class="opts">'+opts.map(function(o){return '<button class="opt" data-neu="'+key+'" data-val="'+o[0]+'" aria-pressed="'+(NEU[key]===o[0])+'"><span class="g">'+(o[0]?o[0]:"–")+'</span><span class="t">'+o[1]+'</span></button>';}).join("")+'</div></div></div>';};
+  return '<div class="narrow">'+res+ice+
+   d("Level of consciousness","loc",[[0,"Alert, normal"],[1,"Awakens spontaneously"],[2,"Awakens to voice"],[3,"Awakens only to tactile stimulus"],[4,"Unarousable, or needs vigorous/repetitive stimuli · stupor or coma"]])+
+   d("Seizure","sz",[[0,"None"],[3,"Clinical seizure that resolves rapidly, or nonconvulsive seizure on EEG that resolves with intervention"],[4,"Prolonged seizure >5 min, or repetitive seizures without return to baseline"]])+
+   d("Motor findings","motor",[[0,"None"],[4,"Deep focal motor weakness (hemiparesis, paraparesis)"]])+
+   d("Raised ICP / cerebral edema","icp",[[0,"None / not assessed"],[3,"Focal or local edema on neuroimaging"],[4,"Diffuse edema, decerebrate/decorticate posturing, CN VI palsy, papilledema, or Cushing’s triad"]])+
+   callout("c-warn","Grading rules",["ICANS grade = the most severe domain.","Baseline ICE <10: use the approach the LIP documented before therapy start.","Document ICE in the EMR ICE Tool Flowsheet. Repeat every 4 h while ICE <10."])+
+   '<button class="btn ghost" data-act="resetice">Reset</button>'+foot("ASTCT consensus (Lee 2019).")+'</div>';
+}
+
+/* CRS management */
+function agentCRSNotes(g,setting){
+  var a=agentById(S.agent);var n=[];
+  var earlyToci=[];if(a&&a.mm)earlyToci.push("multiple myeloma");if(S.age65)earlyToci.push("age >65");if(S.comorb)earlyToci.push("cardiac/renal comorbidity");if(a&&a.epco&&S.steroids)earlyToci.push("epcoritamab on daily steroids");
+  if(earlyToci.length&&g===1)n.push("<b>Early tocilizumab recommended</b> ("+earlyToci.join(", ")+"): "+toci()+".");
+  if(!a)return n;
+  if(a.blina){n.push(g<=2?"<b>Blinatumomab:</b> continue the infusion for Grade 1–2 CRS.":g===3?"<b>Blinatumomab:</b> stop the infusion until CRS resolves.":"<b>Blinatumomab:</b> discontinue.");}
+  if(a.dexFirst)n.push("<b>"+a.name+":</b> dexamethasone is preferred as the initial intervention over tocilizumab.");
+  if(a.id==="tarlatamab"&&g>=2)n.push("Tarlatamab label reference: G2 — consider "+D("dexamethasone 8 mg IV")+"; G3 — "+D("dexamethasone 8 mg IV q8h (up to 3 doses)")+" plus tocilizumab.");
+  if(a.teben){n.push(g===1?"<b>Tebentafusp:</b> defer corticosteroids until later grades.":g===4?"<b>Tebentafusp:</b> use "+mp2()+" instead of dexamethasone.":"<b>Tebentafusp:</b> tocilizumab preferred. If no improvement after the first dose, consider repeat tocilizumab plus "+mp2()+".");}
+  return n;
+}
+function vCRSM(){
+  var g=ui.crsGrade||1,set=S.setting;var out=set==="out";
+  var h='<div class="narrow"><div class="card"><div class="seg gradepick" role="group" aria-label="CRS grade">'+[1,2,3,4].map(function(x){return '<button data-pickg="crs" data-g="'+x+'" aria-pressed="'+(g===x)+'"><span class="gw">Grade </span>'+x+'</button>';}).join("")+'</div>'+
+   '<div class="seg" role="group" aria-label="Setting"><button data-set="setting" data-val="out" aria-pressed="'+out+'">Outpatient / infusion</button><button data-set="setting" data-val="in" aria-pressed="'+(!out)+'">Inpatient</button></div></div>';
+  h+=callout("c-agent","For this patient",agentCRSNotes(g,set));
+  h+=callout("c-stop","Before giving tocilizumab, anakinra, siltuximab or steroids",["Notify the Hematology/Oncology attending."]);
+  if(out&&g>=2){h+=callout("c-stop","Grade "+g+" outside the hospital",["Send the patient to the nearest emergency facility.","Consider inpatient admission for Grade ≥2 CRS. Manage per the inpatient table below."]);out=false;}
+  if(out){
+    h+='<div class="card"><h2>All grades — outpatient</h2>'+ul(["Hold future BsAb doses until CRS resolves. <i>Exception: continue blinatumomab for Grade 1–2; hold for Grade ≥3.</i>","If treated in an infusion center, the APP/infusion nurse notifies the treatment team after symptoms resolve.","Check the product PI for next-dose timing, infusion time, dose modification, premedication and hospitalization after CRS."])+'</div>';
+    h+='<div class="card"><h2>Grade 1 — outpatient</h2><h3>Supportive care</h3>'+ul(["Scheduled antipyretic, e.g. "+D("acetaminophen 1000 mg q8h")+" for at least 24 h.","Aggressive oral hydration.","Patient checks temperature every 1–2 h, and other vitals if able."])+
+      '<h3>Corticosteroid</h3>'+ul(["Grade 1 persists >6–8 h after supportive care → consider "+D("dexAMETHasone 8–10 mg once")+".","Persists >12–48 h → consider daily dexAMETHasone <b>or</b> one dose of tocilizumab."])+
+      '<h3>Anti-cytokine</h3>'+ul([toci()+" if symptoms persist >48 h despite steroid.","<b>Early tocilizumab</b> for: epcoritamab on daily steroids · multiple myeloma · age >65 · comorbidities raising risk of hemodynamic instability (cardiac, renal)."])+
+      '<h3>Other</h3>'+ul(["Consider in-person evaluation after a corticosteroid dose if managed from home.","Consider infection work-up if the exam suggests it.","Consider admission if symptoms persist >72 h or more tocilizumab doses are being considered."])+
+      '<h3>Tell the patient to seek urgent care if</h3>'+ul(["Systolic BP falls ≥10 mmHg below baseline <b>and</b> is &lt;90 mmHg.","New orthostatic symptoms (weakness, confusion, dizziness).","Any new hypoxia."])+'</div>';
+    h+=foot("Institutional BsAb guideline — CRS management, outpatient / infusion center.");return h+'</div>';
+  }
+  h+='<div class="card"><h2>All grades — inpatient</h2>'+ul(["Evaluate for infection: pan-culture, respiratory viral panel, CXR and/or non-contrast CT.","Labs at least daily: CMP, CBC, ferritin, CRP, coagulation panel.","No improvement in 24–72 h, or ferritin rising → assess for HLH/MAS (IEC-HS) and treat separately. <button class=\"linkbtn\" data-go=\"workup\">IEC-HS flags</button>","Check the product PI for next dose after CRS."])+'</div>';
+  var T={
+   1:{mon:["Hold future BsAb doses until CRS resolves (exception: continue blinatumomab).","Consider telemetry and/or continuous pulse oximetry.","Vitals q4h or as clinically appropriate."],
+      sup:["Antipyretics per provider — acetaminophen preferred.","IV fluids per provider, used judiciously (capillary leak drives CRS hypoxia)."],
+      toc:["No improvement after 24–48 h → consider "+toci()+".","Give earlier for significant symptoms, comorbidities, multiple myeloma or age >65.","No improvement after the first dose → may repeat, up to 3 doses in 24 h."],
+      ste:["Fever not resolved after 24–72 h → consider one dose of "+D("dexAMETHasone 10 mg IV")+".","Dexamethasone preferred first for tarlatamab and blinatumomab.","Tebentafusp: defer steroids until later grades."]},
+   2:{mon:["Hospitalize until symptoms resolve.","Hold future BsAb doses (exception: continue blinatumomab).","Telemetry and continuous pulse oximetry recommended.","Vitals q2–4h; reassess 1 h after any drug intervention."],
+      sup:["IV fluid boluses, repeated as needed, to keep SBP ≥90 mmHg.","Supplemental oxygen as indicated.","Recurrent Grade 2 → consider treating as Grade 3."],
+      toc:["Give "+toci()+".","No improvement → repeat q8h as needed. <b>Max 3 doses in 24 h; absolute max 4 doses.</b>","No improvement or rapid progression after 2 tocilizumab doses / steroid escalation → "+anak()+", or "+silt()+"."],
+      ste:["No improvement within 24 h of starting tocilizumab → "+D("dexAMETHasone 10 mg IV q8–12h")+".","Tebentafusp: tocilizumab preferred; if no improvement after first dose, consider repeat tocilizumab + "+mp2()+".","Improving → continue until ≤Grade 1 for 24 h, then taper quickly.","No improvement → manage as Grade 3."]},
+   3:{mon:["Hold BsAb; <b>stop blinatumomab</b> until CRS resolves.","Hospitalize; escalate to IMU/ICU if clinically indicated.","Increase monitoring frequency."],
+      sup:["Vasopressors, supplemental oxygen and aggressive supportive care as needed.","IV fluid as needed to maintain perfusion."],
+      toc:["Tocilizumab as for Grade 2: "+toci()+", max 3 in 24 h / 4 total.","After 2 doses without improvement → "+anak()+", or "+silt()+"."],
+      ste:["Give "+D("dexAMETHasone 10 mg IV q6h")+".","Tebentafusp: tocilizumab preferred; add "+mp2()+" if needed.","Improving → continue until ≤Grade 1, then taper quickly.","No improvement in 24 h or rapid progression → steroids per Grade 4."]},
+   4:{mon:["<b>Discontinue BsAb</b>, including blinatumomab.","Hospitalize / transfer to ICU until symptoms resolve; increase monitoring."],
+      sup:["ICU transfer. Aggressive supportive care (vasopressors, positive-pressure support).","IV fluid as needed to maintain perfusion."],
+      toc:["Tocilizumab as for Grade 2: "+toci()+".","After 2 doses without improvement → "+anak()+", or "+silt()+"."],
+      ste:["Give "+D("dexAMETHasone 20 mg IV q6h")+". Tebentafusp: "+mp2()+".","No improvement in 24 h or rapid progression → "+D("methylPREDNISolone 1000 mg IV daily")+" for ≥3 days or until improvement.","Improving → continue until ≤Grade 1, then taper quickly."]}
+  }[g];
+  h+='<div class="card gc'+g+'" style="border-color:var(--g);border-width:2px"><h2 style="color:var(--g)">Grade '+g+' — inpatient</h2>'+
+   '<h3>Assessment & monitoring</h3>'+ul(T.mon)+'<h3>Supportive care</h3>'+ul(T.sup)+'<h3>Tocilizumab / anti-cytokine</h3>'+ul(T.toc)+'<h3>Corticosteroids</h3>'+ul(T.ste)+'</div>';
+  h+=callout("c-new","Since the guideline (for the guideline owners)",["Crombie et al. (Blood 2024, CD3×CD20 consensus) limits tocilizumab to ≤2 doses per CRS event and ≤3 in 6 weeks, then anakinra. Keep ≥2 doses on site."]);
+  h+=foot("Institutional BsAb guideline — CRS management, inpatient.");return h+'</div>';
+}
+
+/* ICANS management */
+function vICANSM(){
+  var g=ui.icansGrade||1;var a=agentById(S.agent);
+  var h='<div class="narrow"><div class="card"><div class="seg gradepick" role="group" aria-label="ICANS grade">'+[1,2,3,4].map(function(x){return '<button data-pickg="icans" data-g="'+x+'" aria-pressed="'+(g===x)+'"><span class="gw">Grade </span>'+x+'</button>';}).join("")+'</div></div>';
+  var an=[];if(a&&a.blina){an.push(g<=2?"<b>Blinatumomab:</b> the source guideline says continue for Grade 1–2 ICANS.":"<b>Blinatumomab:</b> "+(g===3?"hold":"consider discontinuing")+" the infusion.");if(g===2)an.push("<b>Label update (Apr 2025):</b> Grade 2 ICANS → interrupt blinatumomab, give steroids, restart at 9 mcg/day. Confirm with the attending.");}
+  if(a&&a.id==="tebentafusp")an.push("ICANS is not expected with tebentafusp — look hard for another cause.");
+  h+=callout("c-agent","For this patient",an);
+  h+=callout("c-warn","If CRS is also present",["Manage CRS per the CRS tables as well. Tocilizumab does not treat isolated ICANS."]);
+  var T={
+   1:["Hold BsAb until symptoms resolve (exception: continue blinatumomab).","Engage the LIP; at an infusion site, engage the covering LIP.","Outpatient → consider inpatient admission. At a satellite site → transfer for evaluation at the main treating center. Consider "+D("dexAMETHasone 10 mg once")+" before transfer.","<b>If admitted:</b> vigilant supportive care, aspiration precautions, speech & swallow evaluation; convert oral meds to IV where possible.","Consider "+D("dexAMETHasone 10 mg IV q12h")+", then taper once below Grade 1.","Consider seizure prophylaxis: "+D("levETIRAcetam 750 mg q12h")+".","ICE every 4 h while ICE <10, until back to 10."],
+   2:["Hold BsAb until symptoms resolve (exception: continue blinatumomab — see label note above).","Start "+D("dexAMETHasone 10 mg IV q6h")+"; continue until ≤Grade 1, then taper (table below).","Start "+D("levETIRAcetam 1000 mg q12h")+"; consult Neurology for evaluation and EEG. Seizure on EEG → manage as Grade 4.","ICE every 4 h while ICE <10.","Consider MRI brain with and without contrast. Consider LP to rule out infection."],
+   3:["Hold BsAb, <b>including blinatumomab</b>, until symptoms resolve.","ICU level of care recommended.","Continue "+D("dexAMETHasone 10 mg IV q6h")+"; do not taper until Grade 1.","ICE every 4 h while ICE <10.","Consider "+anak()+", or "+D("anakinra 100 mg SC/IV q12h")+".","Persistent Grade 3: consider MRI brain every 2–3 days and/or daily EEG."],
+   4:["Consider discontinuing BsAb, including blinatumomab.","Consider intubation for airway protection as indicated.","Consider "+D("dexAMETHasone 20 mg IV q6h")+" or "+D("methylPREDNISolone 1000 mg IV daily")+", then taper when Grade 1.","ICE every 4 h while ICE <10.","Consider "+anak()+", or "+D("anakinra 100 mg IV/SC q12h")+". Refractory to high-dose methylprednisolone and anakinra → consider "+silt()+".","Status epilepticus, life-threatening seizure, cerebral edema or papilledema → <button class=\"linkbtn\" data-go=\"seizure\">Seizure & ICP</button>"]
+  }[g];
+  h+='<div class="card gc'+g+'" style="border-color:var(--g);border-width:2px"><h2 style="color:var(--g)">ICANS Grade '+g+'</h2>'+ul(T)+'<p class="note">After resolution, check the agent’s PI for subsequent doses or discontinuation.</p></div>';
+  h+='<div class="card"><h2>DexAMETHasone taper</h2><p class="note">Start once ICANS is Grade ≤1. Each step lasts 24 h.</p><div class="tbl-wrap"><table><thead><tr><th>Dose</th><th>Duration</th><th>ICANS grade</th></tr></thead><tbody>'+
+   '<tr><td>MethylPREDNISolone 1000 mg (if used)</td><td class="mono">24 h</td><td>1</td></tr><tr><td>DexAMETHasone 10 mg q6h</td><td class="mono">24 h</td><td>1</td></tr><tr><td>DexAMETHasone 10 mg q8h</td><td class="mono">24 h</td><td>1</td></tr><tr><td>DexAMETHasone 10 mg q12h</td><td class="mono">24 h</td><td>1</td></tr><tr><td><b>Stop</b></td><td>—</td><td>≤1</td></tr></tbody></table></div></div>';
+  h+=foot("Institutional BsAb guideline — ICANS management and dexamethasone taper.");return h+'</div>';
+}
+
+function vSeizure(){
+  var w=wt();var pb=w?' → <span class="calc">'+r(15*w)+' mg</span>':'';var pbm=w?' → <span class="calc">'+r(w)+'–'+r(3*w)+' mg</span>':'';
+  return '<div class="narrow"><div class="card"><h2>Seizure</h2><ol class="steps"><li>Assess circulation, airway, breathing; check O₂ status and blood glucose.</li><li>'+D("LORazepam 0.5 mg IV")+' once; repeat every 5 min (max 2 mg) until seizure stops.</li><li>'+D("levETIRAcetam 500 mg IV")+' in addition to the maintenance dose.</li><li>Consult Neurology for long-term management.</li></ol></div>'+
+  '<div class="card" style="border-color:var(--g4);border-width:2px"><h2 style="color:var(--g4)">Status epilepticus / life-threatening seizure</h2><ol class="steps"><li>Assess CAB, airway, O₂ and glucose. <b>Escalate to ICU.</b></li><li>'+D("LORazepam 2 mg IV")+' once, then another 2 mg after ≥1 min (total 4 mg).</li><li>'+D("levETIRAcetam 500 mg IV")+' in addition to maintenance. Seizures continue → ICU and add another agent, e.g. '+D("PHENobarbital 15 mg/kg IV load")+pb+'.</li><li>Refractory → continuous EEG monitoring.</li></ol><h3>Maintenance after resolution</h3>'+ul([D("LORazepam 0.5 mg IV q8h × 3 doses"),D("levETIRAcetam 1000 mg IV q12h"),D("PHENobarbital 1–3 mg/kg IV q12h")+pbm])+'</div>'+
+  '<div class="card"><h2>Raised ICP / cerebral edema</h2><h3>Stage 1–2 papilledema with CSF opening pressure &lt;20 mmHg, no cerebral edema</h3>'+ul([D("acetaZOLAMIDE 1000 mg IV")+", then "+D("250–1000 mg IV q12h")+". Monitor renal function and acid–base q12h."])+
+  '<h3>Stage 3–5 papilledema, any cerebral edema on imaging, or opening pressure ≥20 mmHg</h3>'+ul(["High-dose steroids per Grade 4 ICANS.","Head of bed at 30°.","Hyperventilate to PaCO₂ 28–30 mmHg for no more than 24 h.","Hyperosmolar therapy: mannitol or hypertonic saline (3% or 23.4%).","Ommaya reservoir → drain CSF to opening pressure <20 mmHg.","Consider neurosurgery consult. IV anesthetics for burst suppression on EEG.","CMP q6h, daily CT head; adjust for rebound edema, renal failure, electrolytes, hypovolemia, hypotension."])+'</div>'+foot("Institutional BsAb guideline — seizure and raised ICP management.")+'</div>';
+}
+
+function vDose(){
+  var w=wt();
+  var h='<div class="narrow"><div class="card"><div class="field"><label for="d-wt">Weight (kg)</label><input id="d-wt" type="number" inputmode="decimal" min="1" max="400" step="0.1" placeholder="Enter weight" value="'+esc(S.wt)+'" data-ctx="wt"></div><p class="note">'+(w?"≈ "+r(w*2.2046)+" lb. Doses below are calculated for "+w+" kg.":"Enter a weight to calculate weight-based doses.")+'</p></div><div class="dose-grid" id="dosegrid">'+doseCards()+'</div>'+
+   callout("c-warn","Tocilizumab limits",["Guideline: repeat q8h if needed, max 3 doses in 24 h, absolute max 4 doses. After 2 doses without improvement, add anakinra or siltuximab.","Crombie 2024 (CD3×CD20 consensus): ≤2 doses per CRS event, ≤3 in 6 weeks."])+foot("Institutional BsAb guideline; ASTCT; tocilizumab label.")+'</div>';
+  return h;
+}
+function doseCards(){
+  var w=wt();function c(n,v,d){return '<div class="drug"><span class="dn">'+n+'</span><span class="dv">'+v+'</span><span class="dd">'+d+'</span></div>';}
+  return [
+   c("Tocilizumab",w?r(Math.min(8*w,800))+" mg IV"+(8*w>800?" (cap)":""):"8 mg/kg IV","8 mg/kg, max 800 mg/dose. May repeat q8h."),
+   c("Anakinra (CRS / ICANS)",w?r(8*w)+"–"+r(10*w)+" mg/day":"8–10 mg/kg/day",w?"IV in 3–4 divided doses: q8h "+r(8*w/3)+"–"+r(10*w/3)+" mg · q6h "+r(2*w)+"–"+r(2.5*w)+" mg":"IV in 3–4 divided doses."),
+   c("Anakinra (ICANS alternative)","100 mg","SC or IV q12h."),
+   c("Siltuximab",w?r(11*w)+" mg IV":"11 mg/kg IV","Once. Refractory CRS or Grade 4 ICANS."),
+   c("DexAMETHasone","10 → 20 mg","CRS G1: 8–10 mg once · G2: 10 mg q8–12h · G3: 10 mg q6h · G4: 20 mg q6h. ICANS G2–3: 10 mg q6h."),
+   c("MethylPREDNISolone",w?"1000 mg · "+r(2*w)+" mg/day":"1000 mg · 2 mg/kg/day","1 g IV daily (G4 refractory). 2 mg/kg/day for tebentafusp."),
+   c("LevETIRAcetam","750–1000 mg q12h","Prophylaxis 750 mg (G1) · 1000 mg (G2+). Seizure: +500 mg IV."),
+   c("LORazepam","0.5 mg / 2 mg IV","Seizure 0.5 mg q5min (max 2 mg). Status: 2 mg + 2 mg."),
+   c("PHENobarbital",w?r(15*w)+" mg load":"15 mg/kg load",w?"Maintenance "+r(w)+"–"+r(3*w)+" mg IV q12h.":"Maintenance 1–3 mg/kg IV q12h."),
+   c("AcetaZOLAMIDE","1000 mg IV","Then 250–1000 mg IV q12h."),
+   c("Acetaminophen","1000 mg q8h","Scheduled ≥24 h for Grade 1 CRS.")
+  ].join("");
+}
+
+function vAgents(){
+  var groups=[["Multiple myeloma",function(a){return a.mm;}],["Lymphoma & leukemia",function(a){return ["blinatumomab","mosunetuzumab","glofitamab","epcoritamab"].indexOf(a.id)>=0;}],["Solid tumors",function(a){return a.id==="tarlatamab"||a.id==="tebentafusp";}]];
+  var h='<div class="narrow">';
+  groups.forEach(function(gp){h+='<div class="section-label">'+gp[0]+'</div><div class="agent-list">'+AGENTS.filter(gp[1]).map(function(a){
+    return '<button class="agent-row" data-go="agent-'+a.id+'"><span class="tg">'+a.target.split(" ×")[0].split(" (")[0]+'</span><span class="nm"><b>'+a.name+'</b><small>'+a.brand+' · '+a.route+' · CRS '+a.crs.split(" (")[0].split(" ·")[0]+'</small></span>'+(a.rems?'<span class="pill rems">REMS</span>':'')+(!a.inGuide?'<span class="pill new">Newer agent</span>':a.updates.length?'<span class="pill upd">Update</span>':'')+'</button>';}).join("")+'</div>';});
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Agent</th><th>CRS</th><th>CRS onset</th><th>ICANS</th><th>ICANS onset</th></tr></thead><tbody>'+AGENTS.map(function(a){return '<tr><td><b>'+a.name+'</b></td><td>'+a.crs+'</td><td>'+a.crsOnset+'</td><td>'+a.icans+'</td><td>'+a.icansOnset+'</td></tr>';}).join("")+'</tbody></table></div>';
+  return h+foot("Institutional BsAb guideline appendix; linvoseltamab from US label.")+'</div>';
+}
+function vAgent(a){
+  var h='<div class="narrow"><div class="card"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><h2>'+a.name+'</h2><span class="note">'+a.brand+'</span>'+(a.rems?'<span class="pill rems">REMS</span>':'')+(!a.inGuide?'<span class="pill new">Not in source guideline</span>':'')+'</div>'+
+   '<div class="kv"><div>Target</div><div>'+a.target+'</div><div>Disease</div><div>'+a.dz+'</div><div>Route</div><div>'+a.route+'</div><div>CRS incidence</div><div>'+a.crs+'</div><div>CRS onset</div><div>'+a.crsOnset+'</div><div>CRS duration</div><div>'+a.crsDur+'</div><div>ICANS incidence</div><div>'+a.icans+'</div><div>ICANS onset</div><div>'+a.icansOnset+'</div></div></div>'+
+   '<div class="card"><h3>Site of care & observation</h3><p>'+a.site+'</p></div>'+
+   callout("c-agent","Management points",a.notes)+
+   callout("c-new","Label changes since the source guideline — verify with current PI",a.updates)+
+   callout("c-warn","Other toxicities",a.other)+
+   '<div class="btns"><button class="btn" data-setagent="'+a.id+'">Use as patient agent</button><button class="btn ghost" data-go="crs">Grade CRS</button></div>'+
+   foot(a.inGuide?"Institutional BsAb guideline appendix; label notes from current US PI.":"US prescribing information (not covered by the source guideline).")+'</div>';
+  return h;
+}
+
+function vWorkup(){
+  return '<div class="narrow"><div class="card"><h2>Work-up for suspected CRS</h2>'+ul(["Evaluate for infection: pan-culture (blood, urine), respiratory viral panel, CXR and/or non-contrast CT.","CMP, CBC, ferritin, CRP, coagulation panel — at least daily while inpatient.","Neuro symptoms: ICE score; consider MRI brain and EEG (Grade ≥2), LP if infection suspected."])+'</div>'+
+  '<div class="card"><h2>Differential diagnosis</h2>'+ul(["Sepsis / neutropenic fever — can be indistinguishable from CRS; treat both in parallel per institutional protocol.","Viral or opportunistic infection (COVID-19, CMV, PJP).","Infusion reaction (IV agents).","Tumor flare (glofitamab ≈12%).","PML — subacute focal deficits (epcoritamab, glofitamab, linvoseltamab).","Headache and neuropathy are common and are not ICANS."])+'</div>'+
+  '<div class="card" style="border-color:var(--g4);border-width:2px"><h2 style="color:var(--g4)">IEC-HS / HLH red flags</h2><p>If no improvement within 24–72 h, or ferritin rising despite management, assess for HLH/MAS and treat separately.</p>'+ul(["Ferritin >2× upper limit (or >2× baseline) and/or rising rapidly — often as CRS is resolving.","New or worsening cytopenias.","Low fibrinogen / coagulopathy; transaminase rise.","Fever not required."])+
+  callout("c-new","Beyond the source guideline (ASTCT, Hines 2023)",["First-line: anakinra ± corticosteroids. Avoid tocilizumab unless CRS is also present.","Rare after bispecifics (≈0.7%) but high mortality. Involve Hematology early."])+'</div>'+foot("Institutional BsAb guideline; Hines et al. 2023; Crombie et al. 2024.")+'</div>';
+}
+
+function vMonitor(){
+  return '<div class="narrow"><div class="card"><h2>Inpatient nursing checks</h2>'+ul(["CRS signs and symptoms at least every 6 h.","ICANS (ICE) at least every 8 h; every 4 h once ICE <10.","ICE before each step-up dose (minimum)."])+'</div>'+
+  '<div class="card" style="border-color:var(--g3);border-width:2px"><h2 style="color:var(--g3)">Transfer to IMU / ICU if any</h2>'+ul(["Monitoring needed more often than every 4 h.","SBP <90 mmHg / MAP <65 after 500–1000 mL normal saline.","Any vasopressor requirement.","O₂ >6 L NC or mask, rapidly rising O₂ need, or SpO₂ ≤90% despite O₂.","ICE <7, Grade ≥3 ICANS, moderate somnolence or confusion, seizure, dysphasia, focal motor weakness, or edema on imaging."])+'</div>'+
+  '<div class="card"><h2>Ambulatory patients</h2>'+ul(["Monitor during each agent’s high-risk window (see <button class=\"linkbtn\" data-go=\"agents\">Agents</button>).","Patient logs vitals at least every 8 h in the high-risk period; calls immediately for temp ≥100.4 °F (38 °C) or any CRS/ICANS symptom.","LIP prescribes a dexAMETHasone “once if needed” dose for Grade 1 CRS, taken only when instructed.","Consider admission for Grade ≥2 CRS or ICANS; Grade 1 depends on context and the patient’s ability to self-monitor.","Monitoring intervals >8 h: extended infusion hours, then hotel or stay within 1 h of the treating center’s ED.","Give first high-risk doses at the main treating center, not satellite sites."])+'</div>'+
+  '<div class="card"><h2>Home monitoring plan</h2>'+ul(["Record BP, temperature and SpO₂ every 4–8 h for ≥48 h after each step-up dose.","Wallet card, team contact numbers, education on CRS/ICANS symptoms.","Agreed emergency plan and nearest capable ED.","Team liaison call within 24–48 h after dosing."])+
+  callout("c-new","Recent label changes that shift CRS to home",["Tarlatamab (Sep 2026): 6–8 h observation, caregiver + within 1 h for 48 h, vitals Day 2 and 9.","Epcoritamab (Apr 2026): outpatient first full dose allowed at clinician discretion.","Mosunetuzumab SC: CRS after C1D8 median onset 62 h — monitor ≈72–96 h."])+'</div>'+
+  '<div class="card"><h2>Escalation</h2>'+ul(["Notify the Heme/Onc attending when care is escalated after the emergency response team, and <b>before</b> tocilizumab, anakinra, siltuximab or corticosteroids.","Infusion center → ED/inpatient: use your institution’s transfer handoff process."])+'</div>'+foot("Institutional BsAb guideline — assessment, monitoring and home-monitoring plan.")+'</div>';
+}
+
+function vED(){
+  var a=agentById(S.agent);
+  return '<div class="narrow"><div class="ed"><h2>Bispecific T-cell engager patient</h2>'+(a?'<p><b>Agent:</b> '+a.name+' ('+a.brand+') — '+a.dz+'. Typical CRS onset: '+a.crsOnset+'.</p>':'')+
+  '<ol><li><b>Fever ≥38.0 °C (100.4 °F), low BP, low SpO₂ or confusion = possible CRS / ICANS.</b> Steroids and antipyretics can mask fever.</li><li>Vitals, SpO₂, ICE score now. <button class="linkbtn" data-go="crs">Grade CRS</button> <button class="linkbtn" data-go="ice">ICE</button></li><li>Cultures, respiratory viral panel, CXR; CBC, CMP, ferritin, CRP, coags. Treat possible sepsis in parallel.</li><li>Grade ≥2 CRS or any ICANS → admit. Grade 3–4 → ICU.</li><li><b>Call the Heme/Onc attending</b> before tocilizumab, anakinra, siltuximab or steroids.</li><li>Tocilizumab: '+toci()+'. DexAMETHasone 10 mg IV is the usual first steroid dose.</li></ol></div>'+
+  '<div class="btns"><button class="btn" data-go="crsm">CRS management</button><button class="btn ghost" data-go="icansm">ICANS management</button></div>'+foot("Institutional BsAb guideline; ASTCT grading.")+'</div>';
+}
+
+function vOther(){
+  return '<div class="narrow">'+callout("c-new","Beyond the CRS/ICANS guideline",["The source guideline covers CRS and ICANS only. The items below summarize current labels and consensus (IMWG 2024, Crombie 2024). Follow your service’s infection protocol."])+
+  '<div class="card"><h2>Infections</h2><p>The leading cause of non-relapse death with myeloma bispecifics (fatal infections ≈4–7% with BCMA agents).</p>'+ul(["HSV/VZV prophylaxis: acyclovir or valacyclovir.","PJP prophylaxis (TMP-SMX); required by the epcoritamab label.","IVIG to keep IgG >400 mg/dL (myeloma; now in Tecvayli label).","CMV PCR monitoring; HBV prophylaxis (entecavir) if at risk.","Vaccinate before starting where possible.","New focal neuro deficits over weeks → consider PML."])+'</div>'+
+  '<div class="card"><h2>Cytopenias</h2>'+ul(["Neutropenia is very common (teclistamab 88%, 70% grade 3–4).","Check CBC before each dose; follow each PI’s hold thresholds.","Fibrinogen often falls with glofitamab — compare with baseline."])+'</div>'+
+  '<div class="card"><h2>Talquetamab (GPRC5D)</h2>'+ul(["Oral toxicity ≈80% (dysgeusia, dry mouth, dysphagia) — often persistent.","Skin ≈62%, nails ≈50%, weight loss ≈62%.","Label: Grade 3 → withhold until ≤Grade 1; Grade 4 → discontinue.","Emollients, topical steroids, SLS-free toothpaste, dietitian, dental review; consider less frequent dosing."])+'</div>'+
+  '<div class="card"><h2>Tarlatamab</h2>'+ul(["Dysgeusia ≈34%, fatigue, decreased appetite.","Neutropenia, infections, transaminase elevation.","Late ICANS possible — keep screening at visits."])+'</div>'+foot("Current US labels; IMWG 2024; Crombie 2024.")+'</div>';
+}
+
+function vAbout(){
+  return '<div class="narrow"><div class="card"><h2>Install on iPhone</h2><ol class="steps"><li>Open this page in <b>Safari</b>.</li><li>Tap the <b>Share</b> button.</li><li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li><li>Open it from the home screen icon — it runs full-screen like an app.</li></ol><p class="note">On desktop, bookmark the page, or use Chrome/Edge’s install icon in the address bar when the app is hosted with its install files.</p></div>'+
+  '<div class="card"><h2>About</h2><p>BsAb TOX helps clinicians grade and manage CRS and ICANS in adults receiving bispecific T-cell engagers. The layout follows the quick yes/no, tap-to-grade interaction model of point-of-care tools like CARTOX. It is not affiliated with MD Anderson.</p>'+ul(["Primary source: an institutional adult bispecific T-cell engager guideline (2025) built on manufacturer recommendations and published consensus.","Grading: ASTCT consensus (Lee et al. 2019).","Purple “update” boxes: US label changes and consensus through Sept 2026 not yet in the source guideline — verify with the current prescribing information.","No patient data leaves the device. Agent, weight and setting are stored only in this browser."])+'<p class="note">'+VERSION+'</p></div>'+
+  '<div class="card"><h2>Disclaimer</h2><p>Guidelines cannot account for every patient. Clinical judgment remains with the treating physician, nurse, pharmacist or other professional. Document any deviation from the guideline and its rationale in the EHR. Always refer to the official online version of the guideline and the product prescribing information.</p></div>'+
+  '<div class="card"><h2>Appearance</h2><div class="seg" role="group" aria-label="Theme"><button data-theme-set="system">System</button><button data-theme-set="light">Light</button><button data-theme-set="dark">Dark</button></div></div></div>';
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;var d=b.dataset;
+  if(d.go){go(d.go);return;}
+  if(d.crs){CRS[d.crs]=d.crs==="fever"?d.val:parseInt(d.val,10);render();return;}
+  if(d.ice){if(NEU.loc===4)return;ICE[d.ice]=!ICE[d.ice];render();return;}
+  if(d.neu){NEU[d.neu]=parseInt(d.val,10);render();return;}
+  if(d.mg){if(d.mg==="crs"){ui.crsGrade=parseInt(d.g,10);go("crsm");}else{ui.icansGrade=parseInt(d.g,10);go("icansm");}return;}
+  if(d.pickg){if(d.pickg==="crs")ui.crsGrade=parseInt(d.g,10);else ui.icansGrade=parseInt(d.g,10);render();return;}
+  if(d.set){S[d.set]=d.val;save();render();return;}
+  if(d.tog){S[d.tog]=!S[d.tog];save();render();return;}
+  if(d.setagent){S.agent=d.setagent;save();render();return;}
+  if(d.act==="resetcrs"){CRS={fever:"yes",bp:0,o2:0};render();return;}
+  if(d.act==="resetice"){for(var k in ICE)ICE[k]=true;NEU={loc:0,sz:0,motor:0,icp:0};render();return;}
+  if(d.act==="clearctx"){S=JSON.parse(JSON.stringify(DEF));save();render();return;}
+  if(d.themeSet){if(d.themeSet==="system")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",d.themeSet);try{localStorage.setItem("bsabtox.theme",d.themeSet);}catch(x){}return;}
+});
+document.addEventListener("change",function(e){var t=e.target;if(t.dataset&&t.dataset.ctx==="agent"){S.agent=t.value;save();renderCtx(route());}});
+document.addEventListener("input",function(e){var t=e.target;if(t.dataset&&t.dataset.ctx==="wt"){S.wt=t.value;save();renderCtx(route());
+  var lb=document.getElementById("c-lb");if(lb)lb.textContent=wt()?"≈ "+r(wt()*2.2046)+" lb":"";
+  var dg=document.getElementById("dosegrid");if(dg){dg.innerHTML=doseCards();var n=t.closest(".card").querySelector(".note");if(n)n.textContent=wt()?"≈ "+r(wt()*2.2046)+" lb. Doses below are calculated for "+wt()+" kg.":"Enter a weight to calculate weight-based doses.";}}});
+try{var th=localStorage.getItem("bsabtox.theme");if(th==="light"||th==="dark")document.documentElement.setAttribute("data-theme",th);}catch(e){}
+render();
+})();
+</script>
+
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
+</body>
+</html>
