@@ -286,7 +286,7 @@ select,input[type="number"],input[type="tel"],input[type="text"]{font:inherit;fo
 <script>
 (function(){
 "use strict";
-var VERSION = "Content v0.3 · institutional guideline (2025) · label check 29 Sep 2026";
+var VERSION = "Content v0.4 · institutional guideline (2025) · label check 29 Sep 2026";
 
 /* ---------- Agent data (source guideline appendix unless marked) ---------- */
 var AGENTS = [
@@ -358,7 +358,7 @@ var DEF = {agent:"",wt:"",setting:"out",age65:false,comorb:false,steroids:false,
 var S = load();
 function load(){try{var s=JSON.parse(localStorage.getItem("bsabtox.ctx")||"null");if(s&&typeof s==="object"){for(var k in DEF){if(!(k in s))s[k]=DEF[k];}return s;}}catch(e){}return JSON.parse(JSON.stringify(DEF));}
 function save(){try{localStorage.setItem("bsabtox.ctx",JSON.stringify(S));}catch(e){}}
-var CRS = {fever:"yes",bp:0,o2:0};
+var CRS = {fever:"no",bp:0,o2:0};
 var ICE = {year:true,month:true,city:true,hosp:true,n1:true,n2:true,n3:true,cmd:true,write:true,count:true};
 var NEU = {loc:0,sz:0,motor:0,icp:0};
 var ui = {crsGrade:1,icansGrade:1,editCtx:false};
@@ -732,7 +732,7 @@ document.addEventListener("click",function(e){
   if(d.set){S[d.set]=d.val;save();render();return;}
   if(d.tog){S[d.tog]=!S[d.tog];save();render();return;}
   if(d.setagent){S.agent=d.setagent;save();render();return;}
-  if(d.act==="resetcrs"){CRS={fever:"yes",bp:0,o2:0};render();return;}
+  if(d.act==="resetcrs"){CRS={fever:"no",bp:0,o2:0};render();return;}
   if(d.act==="resetice"){for(var k in ICE)ICE[k]=true;NEU={loc:0,sz:0,motor:0,icp:0};render();return;}
   if(d.act==="clearctx"){S=JSON.parse(JSON.stringify(DEF));save();render();return;}
   if(d.themeSet){if(d.themeSet==="system")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",d.themeSet);try{localStorage.setItem("bsabtox.theme",d.themeSet);}catch(x){}return;}
